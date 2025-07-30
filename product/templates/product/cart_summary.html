@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<h1>Card Summary</h1>
+        <section class="py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="row gx-4 gx-lg-5 align-items-center">
+                    {% for product in products %}
+
+                    {% for key, value in quantites.items %}
+
+                    {% if key == product.id|slugify %}
+                    <div class="card mb-3" style="max-width: 540px;">
+                          <div class="row g-0">
+                            <div class="col-md-4">
+                              <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="...">
+                            </div>
+                            <div class="col-md-8">
+                              <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                  <div class="d-flex align-items-center mb-3">
+                                      <label for="inputQuantity">Quantity: </label>
+                                  <input class="form-control text-center me-3" id="inputQuantity" type="num" value="{{ value }}" style="max-width: 3rem" />
+                                     <button class="btn btn-outline-primary" id="update-cart" data-index="{{ product.id }}">Update</button>
+
+                                    </div>
+
+                                  <a class="btn btn-outline-danger" id="delete_product" data-index="{{ product.id }}">Delete</a>
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+
+                    <h3 class="mt-5 text-center">
+                        Total: {{ total}} So'm
+                    </h3>
+
+                </div>
+            </div>
+        </section>
+
+
+<script>
+
+<!--    delete uchun script-->
+    $(document).on('click', '#delete_product', function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'product:cart_delete' %}",
+            data: {
+                'product_id': $(this).data('index'),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post'
+            },
+            success: function(json) {
+                console.log(json);
+                location.reload();
+
+            },
+            error: function(xhr, errmsg, err) {
+                console.log('Xatolik:', errmsg);
+            }
+        });
+    });
+
+
+<!--    //#update uchun script-->
+ $(document).on('click', '#update-cart', function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'product:cart_update' %}",
+            data: {
+                'product_id': $(this).data('index'),
+                'product_quantity': $('#inputQuantity').val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post'
+            },
+            success: function(json) {
+                console.log(json);
+                location.reload();
+
+            },
+            error: function(xhr, errmsg, err) {
+                console.log('Xatolik:', errmsg);
+            }
+        });
+    });
+</script>
+
+
+{% endblock %}
+
