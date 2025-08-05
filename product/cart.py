@@ -72,6 +72,33 @@ class Cart:
         cart = self.cart
 
         return cart
+
+    def get_all_info(self):
+
+        products = self.get_products()
+        total = self.get_total_price()
+
+        result = []
+        for product in products:
+            if str(product.id) in self.cart:
+
+                data = {
+                    "id": str(product.id),
+                    "name": str(product.name),
+                    "price": str(product.price),
+                    "quantity": str(self.cart[str(product.id)]),
+                }
+                result.append(data)
+
+        return result
+
+    def clear_cart(self):
+        self.cart.clear()
+        self.session.modified = True
+        return True
+
+
+
         
         
         

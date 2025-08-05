@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <br>
+    <br>
+    <br>
+    {% for order in orders %}
+   <ul class="list-group">
+  <li class="list-group-item disabled bg-warning" aria-current="true">{{ order.order_id }}  {{ order.total_price }} ---- {{ order.created_at }} So'm</li>
+       {% for item in order.items.all %}
+  <li class="list-group-item bg-info">Product ID {{ item.id}}</li>
+  <li class="list-group-item">Product name {{ item.name }}</li>
+  <li class="list-group-item">Product price {{ item.price }} so'm</li>
+  <li class="list-group-item">Product quantity {{ item.quantity }}</li>
+       {% endfor %}
+</ul>
+    {% endfor %}
+    <br>
+    <br>
+    <br>
+</div>
+
+{% endblock %}

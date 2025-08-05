@@ -1,9 +1,14 @@
-from django.shortcuts import render
+import uuid
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
-from .models import Product, Category
+from .models import Product, Category, Order, Order_item
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from .cart import Cart
+from django.views import View
+from django.core.exceptions import ValidationError
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
 
@@ -16,13 +21,15 @@ def cart_summary(request):
 
     products = cart.get_products()
     quantity = cart.get_quantity()
-
     total = cart.get_total_price()
+
+    all_orders = cart.get_all_info()
 
     data = {
         'products': products,
         'quantites': quantity,
         'total': total,
+        'all_orders': all_orders,
     }
 
     return render(request,'product/cart_summary.html', context=data)
@@ -86,5 +93,53 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'product/detail.html'
     context_object_name = 'product'
+
+
+class OrderView(View):
+
+
+    def post(self, request):
+        cart = Cart(request)
+
+        all_orders = cart.get_all_info()
+        total = cart.get_total_price()
+
+        try:
+            order = Order()
+            order.order_id = uuid.uuid4()
+            order.total_price = total
+            order.user = request.user
+            order.save()
+        except:
+            raise ValidationError("Xatolik yuz berdi, qayta urinib ko'ring")
+
+        try:
+
+            for item_data in all_orders:
+                order_item = Order_item()
+                order_item.orders = order
+                order_item.product_id = item_data['id']
+                order_item.price = item_data['price']
+                order_item.name = item_data['name']
+                order_item.quantity = item_data['quantity']
+                order_item.save()
+        except:
+            raise ValidationError("Order Itemda xatolik yuz berdi, qayta urinib ko'ring")
+
+        cart.clear_cart()
+
+        return redirect('product:index')
+
+class GetOrdersView(LoginRequiredMixin, View):
+    def get(self, request):
+        user = request.user
+        orders = user.orders.all()
+
+        data = {
+            'orders': orders
+        }
+
+        return render(request, 'product/orders.html', context=data)
+
 
 
